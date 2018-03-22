@@ -12,6 +12,28 @@ namespace Aiv.Mpg123
             }
         }
 
+        public enum Text_Encoding
+        {
+            UNKNOWN = 0,
+            UTF8 = 1,
+            LATIN1 = 2,
+            ICY = 3,
+            CP1252 = 4,
+            UTF16 = 5,
+            UTF16BOM = 6,
+            UTF16BE = 7,
+            MAX = 8
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 4)]
+        public struct Mpg123_text
+        {
+            char[] lang;
+            char[] id;
+            IntPtr description;
+            IntPtr text;
+        }
+
         public enum Errors
         {
             OK = 0,
@@ -87,33 +109,6 @@ namespace Aiv.Mpg123
                 throw new ErrorException((Errors)error);
         }
 
-        public void Open(string path)
-        {
-            IntPtr pathPtr = IntPtr.Zero;
-
-            if (path != null)
-            {
-                pathPtr = Marshal.StringToHGlobalAnsi(path);
-            }
-
-            Errors error = NativeMethods.NativeMpg123Open(handle, pathPtr);
-
-            if (error != Errors.OK)
-                throw new ErrorException((Errors)error);
-        }
-
-        public void Close()
-        {
-            Errors error = NativeMethods.NativeMpg123Close(handle);
-            if (error != Errors.OK)
-                throw new ErrorException((Errors)error);
-        }
-
-        //public void Read(byte[] buffer, ulong offset)
-        //{
-        //    NativeMethods.NativeMpg123Read(handle, )
-        //}
-
         protected bool disposed;
 
         public void Dispose()
@@ -144,6 +139,30 @@ namespace Aiv.Mpg123
         ~Mpg123()
         {
             Dispose(false);
+        }
+
+        public static bool Store_UTF8(string TargetString, byte[] buffer, uint size)
+        {
+            IntPtr targetString = IntPtr.Zero;
+            IntPtr source = Marshal.AllocHGlobal(buffer.Length);
+            IntPtr source_size = new IntPtr(size);
+            if (TargetString != null)
+            {
+                targetString = Marshal.StringToHGlobalAnsi(TargetString);
+            }
+            int result = NativeMethods.NativeMpg123Store(targetString, Text_Encoding.UTF8, source, source_size);
+            if (result == 0)
+            {
+                return false;
+                //on error, mpg123_free_string is called on sb)
+            }
+            else return true;
+        }
+
+        public static Text_Encoding EncFromID3(byte[] bytes)
+        {
+            IntPtr enc_byte = Marshal.AllocHGlobal(bytes.Length);
+            return NativeMethods.NativeMpg123EncFromID3(enc_byte);
         }
     }
 }

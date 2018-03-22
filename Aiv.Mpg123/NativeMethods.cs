@@ -38,5 +38,13 @@ namespace Aiv.Mpg123
 
 
 
+        //------
+
+        [DllImport(LibraryName, EntryPoint = "mpg123_store_utf8", CallingConvention = CallingConvention.Cdecl)]
+        internal extern static int NativeMpg123Store(IntPtr sb, [MarshalAs(UnmanagedType.I4)] Mpg123.Text_Encoding enc, IntPtr source, IntPtr source_size);
+
+        [DllImport(LibraryName, EntryPoint = "mpg123_enc_from_id3", CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I4)]
+        internal extern static Mpg123.Text_Encoding NativeMpg123EncFromID3(IntPtr enc_byte);
     }
 }
